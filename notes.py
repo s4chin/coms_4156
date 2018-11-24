@@ -35,15 +35,14 @@ def init():
         exit(0)
 
 
-def add_entry(data, title, password):
-    m.Note.create(content=data, tags=None, title=title, password=password)
+def add_entry(data, title, password, sync):
+    m.Note.create(content=data, tags=None, title=title, password=password, sync=sync)
 
 def get_input():
     title = sys.stdin.read().strip()
     return title
 
 def upload_drive(title, data):
-    if input("\nDo you want to sync with Google Drive (y/n) : ").lower() != 'n':
         print("Syncing with Google Drive....\n")
         dir = os.getcwd()
         f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
@@ -73,9 +72,13 @@ def add_entry_ui():
                         break
                 password_to_store = key_to_store(password)
                 encryped_data = encrypt(data, password)
-                add_entry(encryped_data, title, password_to_store)
-                print("Saved successfully")
-                upload_drive(title, data)
+                if input("\nDo you want this file to be also synced with Google Drive (y/n) : ").lower() != 'n':
+                    add_entry(encryped_data, title, password_to_store, True)
+                    print("Saved successfully")
+                    upload_drive(title, data)
+                else:
+                    add_entry(encryped_data, title, password_to_store, False)
+                    print("Saved successfully")
 
     else:
         print("No title entered! Press Enter to return to main menu")
@@ -117,7 +120,8 @@ def edit_entry(entry, title, data, password):
     entry.title = title
     entry.content = encrypt(data, password)
     entry.save()
-    upload_drive(title, data)
+    if entry.sync:
+        upload_drive(title, data)
     return True
 
 
