@@ -42,6 +42,14 @@ def get_input():
     title = sys.stdin.read().strip()
     return title
 
+def upload_drive(title, data):
+    dir = os.getcwd()
+    f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
+    f.write(data)
+    f.close()
+    upload_to_drive.main()
+    os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
+
 
 def add_entry_ui():
     """Add a note"""
@@ -65,12 +73,8 @@ def add_entry_ui():
                 encryped_data = encrypt(data, password)
                 add_entry(encryped_data, title, password_to_store)
                 print("Saved successfully")
-                dir = os.getcwd()
-                f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
-                f.write(data)
-                f.close()
-                upload_to_drive.main()
-                os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
+                upload_drive(title, data)
+
     else:
         print("No title entered! Press Enter to return to main menu")
         input()
@@ -111,6 +115,7 @@ def edit_entry(entry, title, data, password):
     entry.title = title
     entry.content = encrypt(data, password)
     entry.save()
+    upload_drive(title, data)
     return True
 
 
