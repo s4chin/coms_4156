@@ -12,7 +12,7 @@ import hashlib
 import httplib2
 
 # from os import path
-from apiclient import discovery
+from googleapiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
@@ -29,7 +29,7 @@ CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Drive Sync'
 
 # Declare full path to folder and folder name
-FULL_PATH = r'/Users/aviral/Desktop/SE/coms_4156'
+FULL_PATH = r'/Users/aviral/Desktop/SE/coms_4156/sync'
 DIR_NAME = 'sync'
 # Or simply
 # DIR_NAME = FULL_PATH.split('/')[-1]
