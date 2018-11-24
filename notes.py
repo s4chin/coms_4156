@@ -70,6 +70,7 @@ def add_entry_ui():
                 f.write(data)
                 f.close()
                 upload_to_drive.main()
+                os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
     else:
         print("No title entered! Press Enter to return to main menu")
         input()
