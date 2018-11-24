@@ -12,6 +12,7 @@ from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 import models as m
 from utils import clear_screen, get_paginated_entries
 from crypto_utils import *  # pylint: disable=wildcard-import
+import upload_to_drive
 
 PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
@@ -64,6 +65,11 @@ def add_entry_ui():
                 encryped_data = encrypt(data, password)
                 add_entry(encryped_data, title, password_to_store)
                 print("Saved successfully")
+                dir = os.getcwd()
+                f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
+                f.write(data)
+                f.close()
+                upload_to_drive.main()
     else:
         print("No title entered! Press Enter to return to main menu")
         input()
