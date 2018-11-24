@@ -354,12 +354,12 @@ def main():
                                        media_body=media_body,
                                        fields='id').execute()
 
-        # Remove old files from Drive
-        for drive_file in remove_files:
+        # # Remove old files from Drive
+        # for drive_file in remove_files:
 
-            file_id = [f['id'] for f in items
-                       if f['name'] == drive_file['name']][0]
-            service.files().delete(fileId=file_id).execute()
+        #     file_id = [f['id'] for f in items
+        #                if f['name'] == drive_file['name']][0]
+        #     service.files().delete(fileId=file_id).execute()
 
         # Upload new files on Drive
         for os_file in upload_files:
