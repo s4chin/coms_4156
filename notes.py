@@ -63,7 +63,14 @@ def upload_drive(title, data):
     input()
 
 def download_drive(entry, title, data, password):
-    download_from_drive.main()
+    try:
+        download_from_drive.main()
+    except: 
+        print("Oops!",sys.exc_info()[0],"occured.\n")
+        print("Press Enter to return")
+        input()
+        return
+
     dir = os.getcwd()
     folder = os.path.join(dir, "sync")
     path = os.path.join(folder,title+".txt")
