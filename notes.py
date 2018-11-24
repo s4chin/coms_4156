@@ -43,12 +43,14 @@ def get_input():
     return title
 
 def upload_drive(title, data):
-    dir = os.getcwd()
-    f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
-    f.write(data)
-    f.close()
-    upload_to_drive.main()
-    os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
+    if input("\nDo you want to sync with Google Drive (y/n) : ").lower() != 'n':
+        print("Syncing with Google Drive....\n")
+        dir = os.getcwd()
+        f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
+        f.write(data)
+        f.close()
+        upload_to_drive.main()
+        os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
 
 
 def add_entry_ui():
