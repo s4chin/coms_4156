@@ -38,6 +38,7 @@ def add_entry(data, title, password):
     m.Note.create(content=data, tags=None, title=title, password=password)
     m.Versions.create(content=data, title='1_' + title)
 
+
 def get_input():
     title = sys.stdin.read().strip()
     return title
@@ -99,6 +100,9 @@ def menu_loop():
 
 
 def delete_entry(entry):
+    versions = list(m.Versions.select().where(m.Versions.title.contains(entry.title)))
+    for version in versions:
+        version.delete_instance()
     return entry.delete_instance()
 
 
@@ -114,7 +118,7 @@ def edit_entry(entry, title, data, password):
             prev_version_title_number = version.title.split('_')[0]
             version.title = prev_version_title_number + '_' + title
             version.save()
-    if len(versions) == 2:
+    if len(versions) == 10:
         entry_to_delete = versions[-1]
         entry_to_delete.delete_instance()
         versions.pop()

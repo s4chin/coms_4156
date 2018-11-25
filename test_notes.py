@@ -8,7 +8,7 @@ DB_TEMP = SqliteDatabase(':memory:')
 
 m.proxy.initialize(DB_TEMP)
 DB_TEMP.connect()
-DB_TEMP.create_tables([m.Note], safe=True)
+DB_TEMP.create_tables([m.Note, m.Versions], safe=True)
 
 
 def test_add_entry():
