@@ -15,7 +15,7 @@ from oauth2client import tools
 # from oauth2client.tools import run
 
 from oauth2client.file import Storage
-from apiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload       # pylint: disable=ungrouped-imports
 # Import our folder uploading script
 # import initial_upload
 
@@ -272,7 +272,7 @@ def main():
         folder_metadata = {'name': last_dir,
                            'parents': [parents_id[pre_last_dir]],
                            'mimeType': 'application/vnd.google-apps.folder'}
-        create_folder = service.files().create(
+        create_folder = service.files().create(                  # pylint: disable=no-member
             body=folder_metadata, fields='id').execute()
         folder_id = create_folder.get('id', [])
         parents_id[last_dir] = folder_id
@@ -283,7 +283,7 @@ def main():
                 os.path.join(variable, os_file))[0]
             media = MediaFileUpload(os.path.join(variable, os_file),
                                     mimetype=os_file_mimetype)
-            upload_this = service.files().create(body=some_metadata,
+            upload_this = service.files().create(body=some_metadata,                  # pylint: disable=no-member
                                                  media_body=media,
                                                  fields='id').execute()
             upload_this = upload_this.get('id', [])
@@ -300,7 +300,7 @@ def main():
         # print(last_dir, folder_dir)
         os_files = [f for f in os.listdir(variable)
                     if os.path.isfile(os.path.join(variable, f))]
-        results = service.files().list(
+        results = service.files().list(                            # pylint: disable=no-member
             pageSize=1000, q=('%r in parents and \
             mimeType!="application/vnd.google-apps.folder" and \
             trashed != True' % parents_id[last_dir]),
@@ -310,7 +310,7 @@ def main():
         items = results.get('files', [])
 
         refresh_files = [f for f in items if f['name'] in os_files]
-        remove_files = [f for f in items if f['name'] not in os_files]
+        remove_files = [f for f in items if f['name'] not in os_files]             # pylint: disable=unused-variable
         upload_files = [f for f in os_files
                         if f not in [j['name']for j in items]]
 
@@ -350,7 +350,7 @@ def main():
                 # media_body = MediaFileUpload(file_dir, mimetype=filemime)
                 media_body = MediaFileUpload(file_dir, mimetype=file_mime)
                 # print('I am HERE, ', )
-                service.files().update(fileId=file_id,
+                service.files().update(fileId=file_id,                     # pylint: disable=no-member
                                        media_body=media_body,
                                        fields='id').execute()
 
@@ -372,7 +372,7 @@ def main():
                              'parents': [parents_id[last_dir]]}
             media_body = MediaFileUpload(file_dir, mimetype=filemime)
 
-            service.files().create(body=file_metadata,
+            service.files().create(body=file_metadata,                      # pylint: disable=no-member
                                    media_body=media_body,
                                    fields='id').execute()
 
@@ -385,7 +385,7 @@ def main():
         variable = var + folder_dir
         last_dir = folder_dir.split('/')[-1]
         folder_id = parents_id[last_dir]
-        service.files().delete(fileId=folder_id).execute()
+        service.files().delete(fileId=folder_id).execute()                     # pylint: disable=no-member
 
 if __name__ == '__main__':
     main()

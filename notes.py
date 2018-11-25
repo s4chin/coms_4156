@@ -6,6 +6,9 @@ import traceback
 from collections import OrderedDict
 import readline
 import getpass
+import glob
+from pathlib import Path
+import hashlib
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 
 
@@ -14,9 +17,6 @@ from utils import clear_screen, get_paginated_entries
 from crypto_utils import *  # pylint: disable=wildcard-import
 import upload_to_drive
 import download_from_drive
-from pathlib import Path
-import hashlib
-import glob
 
 PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
@@ -50,15 +50,15 @@ def get_input():
 def upload_drive(title, data):
     try:
         print("Syncing with Google Drive....\n")
-        dir = os.getcwd()
-        f = open(os.path.join(os.path.join(dir, "sync"),title+".txt"),"w+")
+        dir1 = os.getcwd()
+        f = open(os.path.join(os.path.join(dir1, "sync"), title+".txt"), "w+")  # pylint: disable=invalid-name
         f.write(data)
         f.close()
         upload_to_drive.main()
-        os.remove(os.path.join(os.path.join(dir, "sync"),title+".txt"))
+        os.remove(os.path.join(os.path.join(dir1, "sync"), title+".txt"))
         print("Sync successful\n")
     except:
-        print("Oops!",sys.exc_info()[0],"occured.\n")
+        print("Oops!", sys.exc_info()[0], "occured.\n")
         print("Sync Unsuccessful")
     print("Press Enter to return to main menu")
     input()
@@ -67,33 +67,32 @@ def upload_drive(title, data):
 def download_drive(entry, title, data, password):
     try:
         download_from_drive.main()
-    except: 
-        print("Oops!",sys.exc_info()[0],"occured.\n")
+    except:
+        print("Oops!", sys.exc_info()[0], "occured.\n")
         print("Press Enter to return")
         input()
         return
-    dir = os.getcwd()
-    folder = os.path.join(dir, "sync")
-    path = os.path.join(folder,title+".txt")
+    dir1 = os.getcwd()
+    folder = os.path.join(dir1, "sync")
+    path = os.path.join(folder, title+".txt")
     myfile = Path(path)
     if myfile.is_file():
-        h1 = hashlib.md5(open(myfile, 'rb').read()).hexdigest()
+        h_1 = hashlib.md5(open(myfile, 'rb').read()).hexdigest()
         data = data.encode('utf-8')
-        h2 = hashlib.md5(data).hexdigest()
-        if h1!=h2:
-            if input("\nThe data of the note doesn't match with the sync on Google Drive, do you want to update local copy? (y/n) : ").lower() != 'n':
+        h_2 = hashlib.md5(data).hexdigest()
+        if h_1 != h_2:
+            if input("\nThe data of the note doesn't match with the sync on Google Drive, \
+                do you want to update local copy? (y/n) : ").lower() != 'n':
                 with open(myfile, 'r') as ufile:
                     data_new = ufile.read()
                 entry.content = encrypt(data_new, password)
                 entry.save()
     files = glob.glob(folder+"/*")
-    for f in files:
+    for f in files:  # pylint: disable=invalid-name
         os.remove(f)
 
 
-        
 def add_entry_ui():
-    """Add a note"""
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
     print(title_string)
     print("=" * len(title_string))
@@ -112,7 +111,8 @@ def add_entry_ui():
                         break
                 password_to_store = key_to_store(password)
                 encryped_data = encrypt(data, password)
-                if input("\nDo you want this file to be also synced with Google Drive? (y/n) : ").lower() != 'n':
+                if input("\nDo you want this file to be also synced \
+                 with Google Drive? (y/n) : ").lower() != 'n':
                     add_entry(encryped_data, title, password_to_store, True)
                     print("Saved successfully")
                     upload_drive(title, data)
@@ -199,13 +199,12 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
     if entry.sync:
         clear_screen()
         print("Checking for updates on note with Google Drive......")
-        download_drive(entry, title, data, password)    
+        download_drive(entry, title, data, password)
         # entry = m.Note.get(m.Note.title == title)
         # data = decrypt(entry.content, password)
 
     clear_screen()
     print(title)
-    
     print("=" * len(title))
     print(data)
 

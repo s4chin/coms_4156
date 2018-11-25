@@ -16,7 +16,7 @@ from googleapiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from apiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload   # pylint: disable=ungrouped-imports
 
 # import initial_upload
 
@@ -97,9 +97,9 @@ def folder_upload(service):
 
         for name in files:
             file_metadata = {'name': name, 'parents': [folder_id]}
-            media = MediaFileUpload(
+            media = MediaFileUpload(                                 # pylint: disable=undefined-variable
                 os.path.join(root, name),
-                mimetype=mimetypes.MimeTypes().guess_type(name)[0])
+                mimetype=mimetypes.MimeTypes().guess_type(name)[0])           # pylint: disable=undefined-variable
             service.files().create(body=file_metadata,
                                    media_body=media,
                                    fields='id').execute()
@@ -308,7 +308,7 @@ def main():
         last_dir = folder_dir.split(os.path.sep)[-1]
 
         folder_id = parents_id[last_dir]
-        results = service.files().list(
+        results = service.files().list(                        # pylint: disable=no-member
             pageSize=20, q=('%r in parents' % folder_id)).execute()
 
         items = results.get('files', [])
@@ -329,7 +329,7 @@ def main():
                     if os.path.isfile(os.path.join(variable, f))]
         folder_id = parents_id[last_dir]
 
-        results = service.files().list(
+        results = service.files().list(                # pylint: disable=no-member
             pageSize=1000,
             q=('%r in parents and \
             mimeType!="application/vnd.google-apps.folder"' % folder_id),
