@@ -97,6 +97,7 @@ def download_drive(entry, title, data, password):
 
 
 def add_entry_ui():
+    """Add a new note"""
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
     print(title_string)
     print("=" * len(title_string))
