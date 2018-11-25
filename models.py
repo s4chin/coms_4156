@@ -31,5 +31,4 @@ class Versions(Model):
 
     class Meta: # pylint: disable=too-few-public-methods
         database = proxy
-
         

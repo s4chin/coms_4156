@@ -6,8 +6,8 @@ import traceback
 from collections import OrderedDict
 import readline
 import getpass
-from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 import difflib
+from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 
 import models as m
 from utils import clear_screen, get_paginated_entries
@@ -165,34 +165,34 @@ def view_previous_versions(entry, password):
                             .order_by(m.Versions.timestamp.desc())
             versions = list(versions)
         flag = False
-        for i, entry in enumerate(versions):
-            timestamp = entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
+        for i, version_entry in enumerate(versions):
+            timestamp = version_entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
             head = "\"{title}\" on \"{timestamp}\"".format(
-                title=entry.title, timestamp=timestamp)
+                title=version_entry.title, timestamp=timestamp)
             print(str(i) + ") " + head)
         print('d) diffCheck')
         print('q) quit to return')
         next_action = input('Action:[n/d/q] : ').lower().strip()
-        if next_action == 'q':
+        if next_action == 'q':  # pylint: disable=no-else-return
             return False
         elif next_action == 'd':
             first = input('\nInput first Version: ')
             second = input('Input Second Version: ')
-            if first.isdigit() and second.isdigit() and 0 <= int(first) <= i and \
-                    0 <= int(second) <= i and int(first) != int(second):
+            if first.isdigit() and second.isdigit() \
+                    and 0 <= int(first) <= i and 0 <= int(second) <= i and int(first) != int(second):  # pylint: disable=undefined-loop-variable,line-too-long
                 content_1 = decrypt(versions[int(first)].content, password)
                 content_2 = decrypt(versions[int(second)].content, password)
                 content_1_lines = content_1.splitlines()
                 content_2_lines = content_2.splitlines()
-                d = difflib.Differ()
-                diff = d.compare(content_1_lines, content_2_lines)
+                my_d = difflib.Differ()
+                diff = my_d.compare(content_1_lines, content_2_lines)
                 print('\n'.join(diff))
                 print('\nPress enter to return to view versions')
                 input()
             else:
                 print("Invalid Input. Press Enter to continue.")
                 input()
-        elif next_action.isdigit() and 0 <= int(next_action) <= i:
+        elif next_action.isdigit() and 0 <= int(next_action) <= i:  # pylint: disable=undefined-loop-variable
             clear_screen()
             print(versions[int(next_action)].title)
             print("=" * len(versions[int(next_action)].title))
