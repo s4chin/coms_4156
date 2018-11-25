@@ -15,7 +15,8 @@ def test_add_entry():
     title = "avi"
     content = "How are you doing today?"
     password = "masterpassword"
-    add_entry(content, title, password)
+    sync = True
+    add_entry(content, title, password, sync)
     entry = m.Note.get(m.Note.title == title)
     print(entry)
     assert entry.content == content
