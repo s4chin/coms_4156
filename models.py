@@ -20,3 +20,15 @@ class Note(Model):
 
     class Meta: # pylint: disable=too-few-public-methods
         database = proxy
+
+class Versions(Model):
+    """
+    Versions Model in the DB
+    """
+    title = CharField()
+    content = TextField()
+    timestamp = DateTimeField(default=datetime.datetime.now)
+
+    class Meta: # pylint: disable=too-few-public-methods
+        database = proxy
+        
