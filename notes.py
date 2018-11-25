@@ -46,6 +46,7 @@ def get_input():
     title = sys.stdin.read().strip()
     return title
 
+#For Upload Sync
 def upload_drive(title, data):
     try:
         print("Syncing with Google Drive....\n")
@@ -62,6 +63,7 @@ def upload_drive(title, data):
     print("Press Enter to return to main menu")
     input()
 
+#For Download Sync
 def download_drive(entry, title, data, password):
     try:
         download_from_drive.main()
@@ -70,7 +72,6 @@ def download_drive(entry, title, data, password):
         print("Press Enter to return")
         input()
         return
-
     dir = os.getcwd()
     folder = os.path.join(dir, "sync")
     path = os.path.join(folder,title+".txt")
