@@ -9,8 +9,8 @@ import getpass
 import glob
 from pathlib import Path
 import hashlib
+import difflib
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-
 
 import models as m
 from utils import clear_screen, get_paginated_entries
@@ -33,14 +33,16 @@ def init():
         os.makedirs(PATH)
     try:
         DB.connect()
-        DB.create_tables([m.Note], safe=True)
+        DB.create_tables([m.Note, m.Versions], safe=True)
     except DatabaseError as err:
         traceback.print_tb(err.__traceback__)
         exit(0)
 
 
-def add_entry(data, title, password, sync):
+def add_entry(data, title, password):
     m.Note.create(content=data, tags=None, title=title, password=password, sync=sync)
+    m.Versions.create(content=data, title='1_' + title)
+
 
 def get_input():
     title = sys.stdin.read().strip()
@@ -132,6 +134,7 @@ def menu_loop():
     choice = None
     while choice != 'q':
         clear_screen()
+        print(PATH)
         banner = r"""
          _   _       _            
         | \ | |     | |           
@@ -153,15 +156,33 @@ def menu_loop():
 
 
 def delete_entry(entry):
+    versions = list(m.Versions.select().where(m.Versions.title.contains(entry.title)))
+    for version in versions:
+        version.delete_instance()
     return entry.delete_instance()
 
 
 def edit_entry(entry, title, data, password):
+    previous_title = entry.title
     entry.title = title
     entry.content = encrypt(data, password)
     entry.save()
     if entry.sync:
         upload_drive(title, data)
+    versions = list(m.Versions.select().where(m.Versions.title.contains(previous_title)) \
+                    .order_by(m.Versions.timestamp.desc()))
+    if previous_title != title:
+        for version in versions:
+            prev_version_title_number = version.title.split('_')[0]
+            version.title = prev_version_title_number + '_' + title
+            version.save()
+    if len(versions) == 10:
+        entry_to_delete = versions[-1]
+        entry_to_delete.delete_instance()
+        versions.pop()
+    previous_version_number = int(versions[0].title.split('_')[0])
+    title_to_save = str(previous_version_number + 1) + '_' + title
+    m.Versions.create(content=encrypt(data, password), title=title_to_save)
     return True
 
 
@@ -193,6 +214,53 @@ def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-sta
         return False
 
 
+def view_previous_versions(entry, password):
+    flag = True
+    while True:
+        clear_screen()
+        if flag:
+            versions = m.Versions.select().where(m.Versions.title.contains(entry.title)) \
+                            .order_by(m.Versions.timestamp.desc())
+            versions = list(versions)
+        flag = False
+        for i, version_entry in enumerate(versions):
+            timestamp = version_entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
+            head = "\"{title}\" on \"{timestamp}\"".format(
+                title=version_entry.title, timestamp=timestamp)
+            print(str(i) + ") " + head)
+        print('d) diffCheck')
+        print('q) quit to return')
+        next_action = input('Action:[n/d/q] : ').lower().strip()
+        if next_action == 'q':  # pylint: disable=no-else-return
+            return False
+        elif next_action == 'd':
+            first = input('\nInput first Version: ')
+            second = input('Input Second Version: ')
+            if first.isdigit() and second.isdigit() \
+                    and 0 <= int(first) <= i and 0 <= int(second) <= i and int(first) != int(second):  # pylint: disable=undefined-loop-variable,line-too-long
+                content_1 = decrypt(versions[int(first)].content, password)
+                content_2 = decrypt(versions[int(second)].content, password)
+                content_1_lines = content_1.splitlines()
+                content_2_lines = content_2.splitlines()
+                my_d = difflib.Differ()
+                diff = my_d.compare(content_1_lines, content_2_lines)
+                print('\n'.join(diff))
+                print('\nPress enter to return to view versions')
+                input()
+            else:
+                print("Invalid Input. Press Enter to continue.")
+                input()
+        elif next_action.isdigit() and 0 <= int(next_action) <= i:  # pylint: disable=undefined-loop-variable
+            clear_screen()
+            print(versions[int(next_action)].title)
+            print("=" * len(versions[int(next_action)].title))
+            print(decrypt(versions[int(next_action)].content, password))
+            print('\nPress enter to return to view entries')
+            input()
+        else:
+            print("Invalid Input")
+
+
 def view_entry(entry, password):  # pylint: disable=inconsistent-return-statements
     title = entry.title
     data = decrypt(entry.content, password)
@@ -210,13 +278,16 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
 
     print('e) edit entry')
     print('d) delete entry')
+    print('v) view previous versions')
     print('q) to return to view entries')
 
-    next_action = input('Action: [e/d/q] : ').lower().strip()
+    next_action = input('Action: [e/d/v/q] : ').lower().strip()
     if next_action == 'd':
         return delete_entry(entry)
     if next_action == 'e':
         return edit_entry_view(entry, password)
+    if next_action == 'v':
+        return view_previous_versions(entry, password)
     if next_action == 'q':
         return False
 
@@ -271,9 +342,10 @@ def view_entries():
                     reset_flag = view_entry(paginated_entries[int(next_action)], password)
                     break
 
+
 MENU = OrderedDict([
     ('a', add_entry_ui),
-    ('v', view_entries)
+    ('v', view_entries),
 ])
 
 if __name__ == "__main__":
