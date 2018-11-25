@@ -39,7 +39,7 @@ def init():
         exit(0)
 
 
-def add_entry(data, title, password):
+def add_entry(data, title, password, sync):
     m.Note.create(content=data, tags=None, title=title, password=password, sync=sync)
     m.Versions.create(content=data, title='1_' + title)
 
@@ -82,9 +82,11 @@ def download_drive(entry, title, data, password):
         h_1 = hashlib.md5(open(myfile, 'rb').read()).hexdigest()
         data = data.encode('utf-8')
         h_2 = hashlib.md5(data).hexdigest()
+        text_to_print = "\nThe data of the note doesn't match with the sync on Google Drive"
+        text_to_print += " do you want to update local copy? (y/n) : "
         if h_1 != h_2:
-            if input("\nThe data of the note doesn't match with the sync on Google Drive, \
-                do you want to update local copy? (y/n) : ").lower() != 'n':
+            print(text_to_print)
+            if input(text_to_print).lower() != 'n':
                 with open(myfile, 'r') as ufile:
                     data_new = ufile.read()
                 entry.content = encrypt(data_new, password)
@@ -113,8 +115,9 @@ def add_entry_ui():
                         break
                 password_to_store = key_to_store(password)
                 encryped_data = encrypt(data, password)
-                if input("\nDo you want this file to be also synced \
-                 with Google Drive? (y/n) : ").lower() != 'n':
+                text_to_print = "\nDo you want this file to be also synced"
+                text_to_print += " with Google Drive? (y/n) : "
+                if input(text_to_print).lower() != 'n':
                     add_entry(encryped_data, title, password_to_store, True)
                     print("Saved successfully")
                     upload_drive(title, data)
