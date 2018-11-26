@@ -1,0 +1,4 @@
+[report]
+omit =
+    download_from_drive.py
+    upload_to_drive.py
