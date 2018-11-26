@@ -7,6 +7,7 @@ setup_git() {
 
 commit_website_files() {
   git checkout -b gh-pages
+  git pull origin gh-pages
   git add . cov_${TRAVIS_BUILD_NUMBER}
   git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
 }
