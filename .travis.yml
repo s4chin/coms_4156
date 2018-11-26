@@ -5,6 +5,9 @@ script:
 - pytest --pylint --pylint-rcfile=.pylintrc --cov-report html:cov_${TRAVIS_BUILD_NUMBER} --cov=. test_notes.py test_crypto.py
 after_success:
   - .travis/push.sh
+branches:
+  only:
+    - master
 notifications:
   email:
     recipients:
