@@ -15,8 +15,8 @@ from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 import models as m
 from utils import clear_screen, get_paginated_entries
 from crypto_utils import *  # pylint: disable=wildcard-import
-from gdriveDownload.download_from_drive import main as drive_download
-from gdriveUpload.upload_to_drive import main as drive_upload
+import upload_to_drive
+import download_from_drive
 
 PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
@@ -56,17 +56,19 @@ def upload_drive(title, data):
         f = open(os.path.join(os.path.join(dir1, "sync"), title+".txt"), "w+")  # pylint: disable=invalid-name
         f.write(data)
         f.close()
-        drive_upload()
+        upload_to_drive.main()
         os.remove(os.path.join(os.path.join(dir1, "sync"), title+".txt"))
         print("Sync successful\n")
     except:
         print("Oops!", sys.exc_info()[0], "occured.\n")
         print("Sync Unsuccessful")
+    print("Press Enter to return to main menu")
+    input()
 
 #For Download Sync
 def download_drive(entry, title, data, password):
     try:
-        drive_download()
+        download_from_drive.main()
     except:
         print("Oops!", sys.exc_info()[0], "occured.\n")
         print("Press Enter to return")
@@ -123,9 +125,6 @@ def add_entry_ui():
                 else:
                     add_entry(encryped_data, title, password_to_store, False)
                     print("Saved successfully")
-                print("Press Enter to return to main menu")
-                input()
-                clear_screen()
 
     else:
         print("No title entered! Press Enter to return to main menu")
@@ -172,7 +171,6 @@ def edit_entry(entry, title, data, password):
     entry.title = title
     entry.content = encrypt(data, password)
     entry.save()
-    print("\nSaved successfully")
     if entry.sync:
         upload_drive(title, data)
     versions = list(m.Versions.select().where(m.Versions.title.contains(previous_title)) \
@@ -213,9 +211,6 @@ def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-sta
         if data:
             if input("\nSave entry (y/n) : ").lower() != 'n':
                 edit_entry(entry, title, data, password)
-            print("Press Enter to return to main menu")
-            input()
-            clear_screen()
     else:
         print("No title entered! Press Enter to return to main menu")
         input()
