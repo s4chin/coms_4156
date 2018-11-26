@@ -1,14 +1,18 @@
---- 
 language: python
-python: 
-  - "3.6"
-script: 
-  - pytest --pylint --pylint-rcfile=.pylintrc
+python:
+- '3.6'
+script:
+- pytest --pylint --pylint-rcfile=.pylintrc --cov-report html:cov_${TRAVIS_BUILD_NUMBER} --cov=. test_notes.py test_crypto.py
+after_success:
+  - .travis/push.sh
 notifications:
   email:
     recipients:
-      - ag4015@columbia.edu
-      - ag4020@columbia.edu
-      - smk2256@columbia.edu
+    - ag4015@columbia.edu
+    - ag4020@columbia.edu
+    - smk2256@columbia.edu
     on_success: always
     on_failure: always
+env:
+  global:
+    secure: OuQWoeQizDkBinS77z7FYrAxN9ARf5ViCrTJjTL1XWCkvr0Qj24E2cUodlHvWC9zUfRwWUERL43KG/8Wjz140nIbU6VJVbV+nas2B3w4aDDcj6O4uw078wZm0MDTIgxBhOPxYZyht2blFN9rqwiZbiEbB+OJGQe6E3Z43liaS2A8wvPxaBopBPVVh/YmSKIZIyjK2tWmTY+wpYOFbVSi2kwjbnRWavk950kXoYTGUNVSAYomPzQyaMOiF1iQCmtRmrl0bNj7znqyNNx1rmzlIM81MjLQ5kpJ3dFWFlFCqafLbYJbhalr96HMgtu+fBdfPzHd6IZVJqk89oyTd2sqyZ15zitD+H2Zy6Ez/yDfMF5fc87XSMcFxx/Y4ixRilWDlKTl2fJTSzvEI4HZFVa44vH63BY7ahtltOhPfP1pYNSqQrWefMM00RTsVVsXhfFhwqB8fgDDNQ4OAvjJCUViHcxtthHY2nkmqSOuJ4GZ27jrljdpJXDADyz+X/RAFUMI2f439N9T0sO/g05lPzr6/wB7a7qwj+fdoE9c0vStAAZItvJPnlaC3KqUVYjitAmOnSoyP5hOPVwFd6CG8KyiHPSgLy4oLjFlhamIEK6WytE/VKLAwjPf4B3PD0ptGDn073r6pcIAHvtnQfsF3NfzhKG09Fvkqi4hH4sbWDGise4=
