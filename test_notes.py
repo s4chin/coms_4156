@@ -1,8 +1,8 @@
-# Demo file of tests
+import os
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-from notes import fn, add_entry, delete_entry, edit_entry
 import models as m
 from crypto_utils import encrypt, key_to_store
+import notes
 
 DB_TEMP = SqliteDatabase(':memory:')
 
@@ -16,7 +16,7 @@ def test_add_entry():
     content = "How are you doing today?"
     password = "masterpassword"
     sync = True
-    add_entry(content, title, password, sync)
+    notes.add_entry(content, title, password, sync)
     entry = m.Note.get(m.Note.title == title)
     print(entry)
     assert entry.content == content
@@ -30,7 +30,7 @@ def test_delete_entry():
     if entry.exists():
         flag1 = 1
         entry = m.Note.get(m.Note.title == title)  # pylint: disable=assignment-from-no-return
-    delete_entry(entry)
+    notes.delete_entry(entry)
     entry = m.Note.select().where(m.Note.title == title)  # pylint: disable=assignment-from-no-return
     flag2 = 1
     if entry.exists():
@@ -50,7 +50,7 @@ def test_edit_entry():
     new_title = "Superhero Found"
     new_content = "Robin to the rescue!!!"
     encryped_data = encrypt(new_content, password)
-    edit_entry(entry, new_title, new_content, password)
+    notes.edit_entry(entry, new_title, new_content, password)
     entry = m.Note.select().where(m.Note.title == title) # pylint: disable=assignment-from-no-return
     flag = 1
     if entry.exists():
@@ -58,3 +58,19 @@ def test_edit_entry():
     entry = m.Note.get(m.Note.title == new_title)
     assert (entry.title, entry.content, entry.password, flag) ==\
            (new_title, encryped_data, password_to_store, 1)
+
+
+def test_menu_loop_q():
+    notes.input = lambda t: 'q'
+    notes.menu_loop()
+
+
+def test_view_entries():
+    notes.input = lambda t: 'q'
+    notes.view_entries()
+
+
+def test_main():
+    exit_code_1 = os.system("python notes.py")
+    exit_code_2 = os.system("python3 notes.py")
+    assert exit_code_1 and exit_code_2
