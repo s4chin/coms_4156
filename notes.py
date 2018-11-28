@@ -59,41 +59,40 @@ def upload_drive(title, data):
         upload_to_drive.main()
         os.remove(os.path.join(os.path.join(dir1, "sync"), title+".txt"))
         print("Sync successful\n")
+        return True
     except:
         print("Oops!", sys.exc_info()[0], "occured.\n")
         print("Sync Unsuccessful")
-    print("Press Enter to return to main menu")
-    input()
+        return False
 
 #For Download Sync
 def download_drive(entry, title, data, password):
     try:
         download_from_drive.main()
+        dir1 = os.getcwd()
+        folder = os.path.join(dir1, "sync")
+        path = os.path.join(folder, title+".txt")
+        myfile = Path(path)
+        if myfile.is_file():
+            h_1 = hashlib.md5(open(myfile, 'rb').read()).hexdigest()
+            data = data.encode('utf-8')
+            h_2 = hashlib.md5(data).hexdigest()
+            text_to_print = "\nThe data of the note doesn't match with the sync on Google Drive"
+            text_to_print += " do you want to update local copy? (y/n) : "
+            if h_1 != h_2:
+                print(text_to_print)
+                if input(text_to_print).lower() != 'n':
+                    with open(myfile, 'r') as ufile:
+                        data_new = ufile.read()
+                    entry.content = encrypt(data_new, password)
+                    entry.save()
+        files = glob.glob(folder+"/*")
+        for f in files:  # pylint: disable=invalid-name
+            os.remove(f)
+        return True
     except:
         print("Oops!", sys.exc_info()[0], "occured.\n")
-        print("Press Enter to return")
-        input()
-        return
-    dir1 = os.getcwd()
-    folder = os.path.join(dir1, "sync")
-    path = os.path.join(folder, title+".txt")
-    myfile = Path(path)
-    if myfile.is_file():
-        h_1 = hashlib.md5(open(myfile, 'rb').read()).hexdigest()
-        data = data.encode('utf-8')
-        h_2 = hashlib.md5(data).hexdigest()
-        text_to_print = "\nThe data of the note doesn't match with the sync on Google Drive"
-        text_to_print += " do you want to update local copy? (y/n) : "
-        if h_1 != h_2:
-            print(text_to_print)
-            if input(text_to_print).lower() != 'n':
-                with open(myfile, 'r') as ufile:
-                    data_new = ufile.read()
-                entry.content = encrypt(data_new, password)
-                entry.save()
-    files = glob.glob(folder+"/*")
-    for f in files:  # pylint: disable=invalid-name
-        os.remove(f)
+        return False
 
 
 def add_entry_ui():
@@ -125,6 +124,8 @@ def add_entry_ui():
                 else:
                     add_entry(encryped_data, title, password_to_store, False)
                     print("Saved successfully")
+                print("Press Enter to return to main menu")
+                input()
 
     else:
         print("No title entered! Press Enter to return to main menu")
