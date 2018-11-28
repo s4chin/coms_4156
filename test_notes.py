@@ -6,6 +6,7 @@ from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 from notes import fn, add_entry, delete_entry, edit_entry, upload_drive, download_drive
 import models as m
 from crypto_utils import encrypt, key_to_store
+import notes   # pylint: disable=ungrouped-imports
 
 
 DB_TEMP = SqliteDatabase(':memory:')
@@ -126,3 +127,19 @@ class Testnotes(unittest.TestCase):
         f.close()
         p_1 = download_drive(entry, entry.title, entry.content, password)
         assert not p_1
+
+
+def test_menu_loop_q():
+    notes.input = lambda t: 'q'
+    notes.menu_loop()
+
+
+def test_view_entries():
+    notes.input = lambda t: 'q'
+    notes.view_entries()
+
+
+def test_main():
+    exit_code_1 = os.system("python notes.py")
+    exit_code_2 = os.system("python3 notes.py")
+    assert exit_code_1 and exit_code_2
