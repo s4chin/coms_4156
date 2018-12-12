@@ -5,8 +5,8 @@ import mock
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 from notes import fn, add_entry, delete_entry, edit_entry, upload_drive, download_drive
 import models as m
-from crypto_utils import encrypt, key_to_store
 import notes   # pylint: disable=ungrouped-imports
+import Crypto
 
 
 DB_TEMP = SqliteDatabase(':memory:')
@@ -43,17 +43,18 @@ def test_delete_entry():
 
 
 def test_edit_entry():
+    crypto = Crypto.Crypto()
     title = "lost in this world"
     content = "Batman is forever lost!!!"
     password = "masterpassword"
-    password_to_store = key_to_store(password)
+    password_to_store = crypto.key_to_store(password)
     # Need to encrypt before storing
     m.Note.create(content=content, tags=None, title=title, password=password_to_store)
     m.Versions.create(content=content, title='1_' + title)
     entry = m.Note.get(m.Note.title == title)
     new_title = "Superhero Found"
     new_content = "Robin to the rescue!!!"
-    encryped_data = encrypt(new_content, password)
+    encryped_data = crypto.encrypt(new_content, password)
     edit_entry(entry, new_title, new_content, password)
     entry = m.Note.select().where(m.Note.title == title) # pylint: disable=assignment-from-no-return
     flag = 1

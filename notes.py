@@ -14,7 +14,7 @@ from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 
 import models as m
 from utils import clear_screen, get_paginated_entries
-from crypto_utils import *  # pylint: disable=wildcard-import
+import Crypto
 import upload_to_drive
 import download_from_drive
 
@@ -22,6 +22,7 @@ PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
 m.proxy.initialize(DB)
 FINISH_KEY = "ctrl+Z" if os.name == 'nt' else "ctrl+D"
+crypto = Crypto.Crypto()
 
 
 def init():
@@ -84,7 +85,7 @@ def download_drive(entry, title, data, password):
                 if input(text_to_print).lower() != 'n':
                     with open(myfile, 'r') as ufile:
                         data_new = ufile.read()
-                    entry.content = encrypt(data_new, password)
+                    entry.content = crypto.encrypt(data_new, password)
                     entry.save()
         files = glob.glob(folder+"/*")
         for f in files:  # pylint: disable=invalid-name
@@ -113,8 +114,8 @@ def add_entry_ui():
                         print("Please input a valid password")
                     else:
                         break
-                password_to_store = key_to_store(password)
-                encryped_data = encrypt(data, password)
+                password_to_store = crypto.key_to_store(password)
+                encryped_data = crypto.encrypt(data, password)
                 text_to_print = "\nDo you want this file to be also synced"
                 text_to_print += " with Google Drive? (y/n) : "
                 if input(text_to_print).lower() != 'n':
@@ -170,7 +171,7 @@ def delete_entry(entry):
 def edit_entry(entry, title, data, password):
     previous_title = entry.title
     entry.title = title
-    entry.content = encrypt(data, password)
+    entry.content = crypto.encrypt(data, password)
     entry.save()
     if entry.sync:
         upload_drive(title, data)
@@ -187,7 +188,7 @@ def edit_entry(entry, title, data, password):
         versions.pop()
     previous_version_number = int(versions[0].title.split('_')[0])
     title_to_save = str(previous_version_number + 1) + '_' + title
-    m.Versions.create(content=encrypt(data, password), title=title_to_save)
+    m.Versions.create(content=crypto.encrypt(data, password), title=title_to_save)
     return True
 
 
@@ -243,8 +244,8 @@ def view_previous_versions(entry, password):
             second = input('Input Second Version: ')
             if first.isdigit() and second.isdigit() \
                     and 0 <= int(first) <= i and 0 <= int(second) <= i and int(first) != int(second):  # pylint: disable=undefined-loop-variable,line-too-long
-                content_1 = decrypt(versions[int(first)].content, password)
-                content_2 = decrypt(versions[int(second)].content, password)
+                content_1 = crypto.decrypt(versions[int(first)].content, password)
+                content_2 = crypto.decrypt(versions[int(second)].content, password)
                 content_1_lines = content_1.splitlines()
                 content_2_lines = content_2.splitlines()
                 my_d = difflib.Differ()
@@ -259,7 +260,7 @@ def view_previous_versions(entry, password):
             clear_screen()
             print(versions[int(next_action)].title)
             print("=" * len(versions[int(next_action)].title))
-            print(decrypt(versions[int(next_action)].content, password))
+            print(crypto.decrypt(versions[int(next_action)].content, password))
             print('\nPress enter to return to view entries')
             input()
         else:
@@ -268,7 +269,7 @@ def view_previous_versions(entry, password):
 
 def view_entry(entry, password):  # pylint: disable=inconsistent-return-statements
     title = entry.title
-    data = decrypt(entry.content, password)
+    data = crypto.decrypt(entry.content, password)
     if entry.sync:
         clear_screen()
         print("Checking for updates on note with Google Drive......")
@@ -340,7 +341,7 @@ def view_entries():
             while 1:
                 password = getpass.getpass('Password To Retrieve Content: ')
                 entry = paginated_entries[int(next_action)]
-                if key_to_store(password) != entry.password:
+                if crypto.key_to_store(password) != entry.password:
                     if input("Password is incorrect. Do you want to retry? (y/n): ").lower() != 'y':
                         break
                 else:
