@@ -17,6 +17,7 @@ from utils import clear_screen, get_paginated_entries
 import Crypto
 import upload_to_drive
 import download_from_drive
+from clint.textui import puts, colored
 
 PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
@@ -44,7 +45,6 @@ def set_profile():
     profile = {
         'password': password
     }
-    print(profile)
 
 
 def init():
@@ -81,12 +81,13 @@ def upload_drive(title, data):
         f.close()
         upload_to_drive.main()
         os.remove(os.path.join(os.path.join(dir1, "sync"), title+".txt"))
-        print("Sync successful\n")
+        puts(colored.green("Sync successful\n"))
         return True
     except:
-        print("Oops!", sys.exc_info()[0], "occured.\n")
-        print("Sync Unsuccessful")
+        puts(colored.red("Oops!", sys.exc_info()[0], "occured.\n"))
+        puts(colored.red("Sync Unsuccessful"))
         return False
+
 
 #For Download Sync
 def download_drive(entry, title, data, password):
@@ -114,7 +115,7 @@ def download_drive(entry, title, data, password):
             os.remove(f)
         return True
     except:
-        print("Oops!", sys.exc_info()[0], "occured.\n")
+        puts(colored.red("Oops!", sys.exc_info()[0], "occured.\n"))
         return False
 
 
@@ -128,15 +129,16 @@ def add_entry_ui():
     """Add a new note"""
     global profile
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
-    print(title_string)
-    print("=" * len(title_string))
+    puts(colored.yellow(title_string))
+    puts(colored.blue("=" * len(title_string)))
     title = get_input()
     if title:
         entry_string = "\nEnter your entry: (press {} when finished)".format(FINISH_KEY)
-        print(entry_string)
+        puts(colored.yellow(entry_string))
         data = get_input()
         if data:
-            print("\nEnter comma separated tags(optional): (press {} when finished) : ".format(FINISH_KEY))
+            tag_string = "\nEnter comma separated tags(optional): (press {} when finished) : ".format(FINISH_KEY)
+            puts(colored.yellow(tag_string))
             tags = get_input().strip()
             tags = processTags(tags)
             if input("\nSave entry (y/n) : ").lower() != 'n':
@@ -155,16 +157,16 @@ def add_entry_ui():
                 text_to_print += " with Google Drive? (y/n) : "
                 if input(text_to_print).lower() != 'n':
                     add_entry(encryped_data, title, password_to_store, tags, True)
-                    print("Saved successfully")
+                    puts(colored.green("Saved successfully"))
                     upload_drive(title, data)
                 else:
                     add_entry(encryped_data, title, password_to_store, tags, False)
-                    print("Saved successfully")
+                    puts(colored.green("Saved successfully"))
                 print("Press Enter to return to main menu")
                 input()
 
     else:
-        print("No title entered! Press Enter to return to main menu")
+        puts(colored.red("No title entered! Press Enter to return to main menu"))
         input()
         clear_screen()
         return
@@ -174,10 +176,10 @@ def search_entries():
     """Search notes"""
     while 1:
         clear_screen()
-        print("What do you want to search for?")
-        print("c) Content")
-        print("t) Tags")
-        print("q) Return to the main menu")
+        puts(colored.blue("What do you want to search for?"))
+        puts(colored.cyan("c) Content"))
+        puts(colored.cyan("t) Tags"))
+        puts(colored.cyan("q) Return to the main menu"))
         print("Action [c/t/q] : ", end="")
         query_selector = input("").lower()
         if query_selector == "t":
@@ -198,7 +200,6 @@ def menu_loop():
     choice = None
     while choice != 'q':
         clear_screen()
-        print(PATH)
         banner = r"""
          _   _       _            
         | \ | |     | |           
@@ -207,10 +208,10 @@ def menu_loop():
         | |\  | (_) | ||  __/\__ \
         \_| \_/\___/ \__\___||___/
         """
-        print(banner)
-        print("Enter 'q' to quit")
+        puts(colored.green(banner))
+        puts(colored.blue("Enter 'q' to quit"))
         for key, value in MENU.items():
-            print('{}) {} : '.format(key, value.__doc__))
+            puts(colored.cyan('{}) {}'.format(key, value.__doc__)))
         choice = input('Action : ').lower().strip()
 
         if choice in MENU:
@@ -253,8 +254,8 @@ def edit_entry(entry, title, data, password):
 def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-statements
     clear_screen()
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
-    print(title_string)
-    print("=" * len(title_string))
+    puts(colored.blue(title_string))
+    puts(colored.yellow("=" * len(title_string)))
     readline.set_startup_hook(lambda: readline.insert_text(entry.title))
     try:
         title = sys.stdin.read().strip()
@@ -262,7 +263,7 @@ def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-sta
         readline.set_startup_hook()
     if title:
         entry_string = "\nEnter your entry: (press {} when finished)".format(FINISH_KEY)
-        print(entry_string)
+        puts(colored.blue(entry_string))
         readline.set_startup_hook(lambda: readline.insert_text(entry.content))
         try:
             data = sys.stdin.read().strip()
@@ -272,7 +273,7 @@ def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-sta
             if input("\nSave entry (y/n) : ").lower() != 'n':
                 edit_entry(entry, title, data, password)
     else:
-        print("No title entered! Press Enter to return to main menu")
+        puts(colored.red("No title entered! Press Enter to return to main menu"))
         input()
         clear_screen()
         return False
@@ -336,14 +337,14 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
         # data = decrypt(entry.content, password)
 
     clear_screen()
-    print(title)
-    print("=" * len(title))
-    print(data)
+    puts(colored.yellow(title))
+    puts(colored.blue("=" * len(title)))
+    puts(colored.yellow(data))
 
-    print('e) edit entry')
-    print('d) delete entry')
-    print('v) view previous versions')
-    print('q) to return to view entries')
+    puts(colored.cyan('e) edit entry'))
+    puts(colored.cyan('d) delete entry'))
+    puts(colored.cyan('v) view previous versions'))
+    puts(colored.cyan('q) to return to view entries'))
 
     next_action = input('Action: [e/d/v/q] : ').lower().strip()
     if next_action == 'd':
@@ -377,7 +378,7 @@ def view_entries(search_query=None, search_content=None):
 
             entries = list(entries)
             if not entries:
-                print("Your search had no results. Press enter to return to the main menu!")
+                puts(colored.red("Your search had no results. Press enter to return to the main menu!"))
                 input()
                 clear_screen()
                 return
@@ -388,10 +389,10 @@ def view_entries(search_query=None, search_content=None):
             timestamp = entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
             head = "\"{title}\" on \"{timestamp}\" Tags: {tags}".format(
                 title=entry.title, timestamp=timestamp, tags=entry.tags)
-            print(str(i) + ") " + head)
-        print('n) next page')
-        print('p) previous page')
-        print('q) to return to main menu')
+            puts(colored.blue(str(i) + ") " + head))
+        puts(colored.cyan('n) next page'))
+        puts(colored.cyan('p) previous page'))
+        puts(colored.cyan('q) to return to main menu'))
 
         next_action = input('Action: [n/p/q] : ').lower().strip()
         if next_action == 'q':
