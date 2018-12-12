@@ -23,6 +23,28 @@ DB = SqliteDatabase(PATH + '/diary.db')
 m.proxy.initialize(DB)
 FINISH_KEY = "ctrl+Z" if os.name == 'nt' else "ctrl+D"
 crypto = Crypto.Crypto()
+profile = None
+
+
+def reset_profile():
+    """Reset the password"""
+    global profile
+    profile = None
+
+
+def set_profile():
+    """Use one password for all notes"""
+    while True:
+        password = getpass.getpass("Password for this session: ")
+        if not password:
+            print("Please input a valid password")
+        else:
+            break
+    global profile
+    profile = {
+        'password': password
+    }
+    print(profile)
 
 
 def init():
@@ -40,8 +62,8 @@ def init():
         exit(0)
 
 
-def add_entry(data, title, password, sync):
-    m.Note.create(content=data, tags=None, title=title, password=password, sync=sync)
+def add_entry(data, title, password, tags=None, sync=False):
+    m.Note.create(content=data, tags=tags, title=title, password=password, sync=sync)
     m.Versions.create(content=data, title='1_' + title)
 
 
@@ -49,7 +71,7 @@ def get_input():
     title = sys.stdin.read().strip()
     return title
 
-#For Upload Sync
+
 def upload_drive(title, data):
     try:
         print("Syncing with Google Drive....\n")
@@ -96,8 +118,15 @@ def download_drive(entry, title, data, password):
         return False
 
 
+def processTags(tag):
+    tag_list = tag.split(',')
+    new_tag_list = [tag.strip() for tag in tag_list if tag] + ['all']
+    return ','.join(sorted(set(new_tag_list)))
+
+
 def add_entry_ui():
     """Add a new note"""
+    global profile
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
     print(title_string)
     print("=" * len(title_string))
@@ -107,23 +136,29 @@ def add_entry_ui():
         print(entry_string)
         data = get_input()
         if data:
+            print("\nEnter comma separated tags(optional): (press {} when finished) : ".format(FINISH_KEY))
+            tags = get_input().strip()
+            tags = processTags(tags)
             if input("\nSave entry (y/n) : ").lower() != 'n':
-                while True:
-                    password = getpass.getpass("Password To protect data: ")
-                    if not password:
-                        print("Please input a valid password")
-                    else:
-                        break
+                if not profile:
+                    while True:
+                        password = getpass.getpass("Password To protect data: ")
+                        if not password:
+                            print("Please input a valid password")
+                        else:
+                            break
+                else:
+                    password = profile['password']
                 password_to_store = crypto.key_to_store(password)
                 encryped_data = crypto.encrypt(data, password)
                 text_to_print = "\nDo you want this file to be also synced"
                 text_to_print += " with Google Drive? (y/n) : "
                 if input(text_to_print).lower() != 'n':
-                    add_entry(encryped_data, title, password_to_store, True)
+                    add_entry(encryped_data, title, password_to_store, tags, True)
                     print("Saved successfully")
                     upload_drive(title, data)
                 else:
-                    add_entry(encryped_data, title, password_to_store, False)
+                    add_entry(encryped_data, title, password_to_store, tags, False)
                     print("Saved successfully")
                 print("Press Enter to return to main menu")
                 input()
@@ -133,6 +168,29 @@ def add_entry_ui():
         input()
         clear_screen()
         return
+
+
+def search_entries():
+    """Search notes"""
+    while 1:
+        clear_screen()
+        print("What do you want to search for?")
+        print("c) Content")
+        print("t) Tags")
+        print("q) Return to the main menu")
+        print("Action [c/t/q] : ", end="")
+        query_selector = input("").lower()
+        if query_selector == "t":
+            view_entries(input("Enter a search Query: "), search_content=False)
+            break
+        elif query_selector == "c":
+            view_entries(input("Enter a search Query: "), search_content=True)
+            break
+        elif query_selector == "q":
+            break
+        else:
+            print("Your input was not recognized, please try again!\n")
+            input('')
 
 
 def menu_loop():
@@ -298,8 +356,9 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
         return False
 
 
-def view_entries():
+def view_entries(search_query=None, search_content=None):
     """View all the notes"""
+    global profile
     page_size = 2
     index = 0
     reset_flag = True
@@ -310,6 +369,12 @@ def view_entries():
             # Get entries if reset_flag is True
             # Will be True initially and on delete/edit entry
             entries = m.Note.select().order_by(m.Note.timestamp.desc())  # pylint: disable=assignment-from-no-return
+
+            if search_query and search_content:
+                entries = entries.where(m.Note.content.contains(search_query))
+            elif search_query and not search_content:
+                entries = entries.where(m.Note.tags.contains(search_query))
+
             entries = list(entries)
             if not entries:
                 print("Your search had no results. Press enter to return to the main menu!")
@@ -321,8 +386,8 @@ def view_entries():
         paginated_entries = get_paginated_entries(entries, index, page_size)
         for i, entry in enumerate(paginated_entries):
             timestamp = entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
-            head = "\"{title}\" on \"{timestamp}\"".format(
-                title=entry.title, timestamp=timestamp)
+            head = "\"{title}\" on \"{timestamp}\" Tags: {tags}".format(
+                title=entry.title, timestamp=timestamp, tags=entry.tags)
             print(str(i) + ") " + head)
         print('n) next page')
         print('p) previous page')
@@ -339,7 +404,12 @@ def view_entries():
                 index -= page_size
         elif next_action.isdigit() and 0 <= int(next_action) < len(paginated_entries):
             while 1:
-                password = getpass.getpass('Password To Retrieve Content: ')
+                if not profile:
+                    password = getpass.getpass('Password To Retrieve Content: ')
+                elif crypto.key_to_store(profile['password']) != entry.password:
+                    password = getpass.getpass('Password To Retrieve Content: ')
+                else:
+                    password = profile['password']
                 entry = paginated_entries[int(next_action)]
                 if crypto.key_to_store(password) != entry.password:
                     if input("Password is incorrect. Do you want to retry? (y/n): ").lower() != 'y':
@@ -352,6 +422,9 @@ def view_entries():
 MENU = OrderedDict([
     ('a', add_entry_ui),
     ('v', view_entries),
+    ('s', search_entries),
+    ('p', set_profile),
+    ('r', reset_profile),
 ])
 
 if __name__ == "__main__":
