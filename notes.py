@@ -365,7 +365,7 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
 
 def view_entries(search_query=None, search_content=None):
     """View all the notes"""
-    global profile        # pylint: disable=global statement, invalid-name, bad-option-value
+    global profile        # pylint: disable=global statement, invalid-name
     page_size = 2
     index = 0
     reset_flag = True
