@@ -11,25 +11,24 @@ from pathlib import Path
 import hashlib
 import difflib
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-
+from clint.textui import puts, colored
 import models as m
 from utils import clear_screen, get_paginated_entries
-import Crypto
+import crypto as Crypto
 import upload_to_drive
 import download_from_drive
-from clint.textui import puts, colored
 
 PATH = os.getenv('HOME', os.path.expanduser('~')) + '/.notes'
 DB = SqliteDatabase(PATH + '/diary.db')
 m.proxy.initialize(DB)
 FINISH_KEY = "ctrl+Z" if os.name == 'nt' else "ctrl+D"
-crypto = Crypto.Crypto()
-profile = None
+crypto = Crypto.Crypto()                          #pylint disable=invalid-name
+profile = None                                    #pylint disable=invalid-name
 
 
 def reset_profile():
     """Reset the password"""
-    global profile
+    global profile           #pylint disable=global-statement, invalid-name
     profile = None
 
 
@@ -41,7 +40,7 @@ def set_profile():
             print("Please input a valid password")
         else:
             break
-    global profile
+    global profile        #pylint disable=global-statement, invalid-name
     profile = {
         'password': password
     }
@@ -119,7 +118,7 @@ def download_drive(entry, title, data, password):
         return False
 
 
-def processTags(tag):
+def process_tags(tag):
     tag_list = tag.split(',')
     new_tag_list = [tag.strip() for tag in tag_list if tag] + ['all']
     return ','.join(sorted(set(new_tag_list)))
@@ -127,20 +126,22 @@ def processTags(tag):
 
 def add_entry_ui():
     """Add a new note"""
-    global profile
+    global profile            # pylint: disable=global statement, invalid-name, bad-option-value
     title_string = "Title (press {} when finished)".format(FINISH_KEY)
     puts(colored.yellow(title_string))
     puts(colored.blue("=" * len(title_string)))
     title = get_input()
-    if title:
+    exist_entry = m.Note.select().where(m.Note.title == title)         #pylint: disable=assignment-from-no-return
+    flag = exist_entry.exists()
+    if not flag and title:                   #pylint: disable=too-many-nested-blocks
         entry_string = "\nEnter your entry: (press {} when finished)".format(FINISH_KEY)
         puts(colored.yellow(entry_string))
         data = get_input()
         if data:
-            tag_string = "\nEnter comma separated tags(optional): (press {} when finished) : ".format(FINISH_KEY)
+            tag_string = "\nEnter comma separated tags(optional): (press {} when finished) : ".format(FINISH_KEY) # pylint disable=line-too-long
             puts(colored.yellow(tag_string))
             tags = get_input().strip()
-            tags = processTags(tags)
+            tags = process_tags(tags)
             if input("\nSave entry (y/n) : ").lower() != 'n':
                 if not profile:
                     while True:
@@ -165,6 +166,11 @@ def add_entry_ui():
                 print("Press Enter to return to main menu")
                 input()
 
+    elif flag:
+        puts(colored.red("Note with this title already exists! Press Enter to return to main menu to view the note")) # pylint disable=line-too-long
+        input()
+        clear_screen()
+        return
     else:
         puts(colored.red("No title entered! Press Enter to return to main menu"))
         input()
@@ -262,7 +268,7 @@ def edit_entry_view(entry, password):  # pylint: disable=inconsistent-return-sta
     finally:
         readline.set_startup_hook()
     if title:
-        entry_string = "\nEnter your entry: (press {} when finished)".format(FINISH_KEY)
+        entry_string = "\nEnter your new entry: (press {} when finished)".format(FINISH_KEY)
         puts(colored.blue(entry_string))
         readline.set_startup_hook(lambda: readline.insert_text(entry.content))
         try:
@@ -359,7 +365,7 @@ def view_entry(entry, password):  # pylint: disable=inconsistent-return-statemen
 
 def view_entries(search_query=None, search_content=None):
     """View all the notes"""
-    global profile
+    global profile        # pylint: disable=global statement, invalid-name
     page_size = 2
     index = 0
     reset_flag = True
@@ -378,7 +384,7 @@ def view_entries(search_query=None, search_content=None):
 
             entries = list(entries)
             if not entries:
-                puts(colored.red("Your search had no results. Press enter to return to the main menu!"))
+                puts(colored.red("Your search had no results. Press enter to return to the main menu!")) #pylint disable=line-too-long
                 input()
                 clear_screen()
                 return
@@ -407,7 +413,7 @@ def view_entries(search_query=None, search_content=None):
             while 1:
                 if not profile:
                     password = getpass.getpass('Password To Retrieve Content: ')
-                elif crypto.key_to_store(profile['password']) != entry.password:
+                elif crypto.key_to_store(profile['password']) != entry.password:       # pylint: disable=undefined-loop-variable
                     password = getpass.getpass('Password To Retrieve Content: ')
                 else:
                     password = profile['password']
