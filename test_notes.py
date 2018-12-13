@@ -6,7 +6,7 @@ from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 from notes import fn, add_entry, delete_entry, edit_entry, upload_drive, download_drive
 import models as m
 import notes   # pylint: disable=ungrouped-imports
-import Crypto
+import crypto as Crypto
 
 
 DB_TEMP = SqliteDatabase(':memory:')
@@ -131,7 +131,7 @@ class Testnotes(unittest.TestCase):
 
 
 def test_menu_loop_q():
-    notes.input = lambda t: 'q'
+    notes.input = lambda t: 'q'     #pylint: disable=redefined-builtin
     notes.menu_loop()
 
 
