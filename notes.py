@@ -183,16 +183,12 @@ def search_entries():
     while 1:
         clear_screen()
         puts(colored.blue("What do you want to search for?"))
-        puts(colored.cyan("c) Content"))
         puts(colored.cyan("t) Tags"))
         puts(colored.cyan("q) Return to the main menu"))
         print("Action [c/t/q] : ", end="")
         query_selector = input("").lower()
         if query_selector == "t":
             view_entries(input("Enter a search Query: "), search_content=False)
-            break
-        elif query_selector == "c":
-            view_entries(input("Enter a search Query: "), search_content=True)
             break
         elif query_selector == "q":
             break
