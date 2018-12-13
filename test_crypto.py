@@ -1,7 +1,7 @@
 import base64
 from Cryptodome.Cipher import AES
 from Cryptodome.Hash import SHA256
-import Crypto
+import crypto as Crypto
 PADDING = "="
 
 
