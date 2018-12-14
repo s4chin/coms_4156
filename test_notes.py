@@ -3,7 +3,7 @@ import os
 import unittest
 import mock
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-from notes import fn, add_entry, delete_entry, edit_entry, upload_drive, download_drive, search_entries
+from notes import *
 import models as m
 import notes   # pylint: disable=ungrouped-imports
 import crypto as Crypto
