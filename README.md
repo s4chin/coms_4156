@@ -5,19 +5,19 @@ Course project for COMS 4156 - Advanced Software Engineering
 ## Instructions
 To run, first clone this repository
 
-# To install requirements:
+To install requirements:
 ```sh
 pip3 install -r requirements.txt
 ```
-# To setup Google Drive Sync 
+To setup Google Drive Sync 
 1) Turn on Google Drive API [here] (if you have any troubles, check [Python Quickstart guide]).
 2) Get your .json client secret config file in [Google API Projects page] and put it in working directory (don't forget to save it as *client-secret.json*)
 
-# To run:
+To run:
 ```sh
 python3 notes.py
 ```
-# To test and generate coverage report:
+To test and generate coverage report:
 ```sh
 pytest --pylint --pylint-rcfile=.pylintrc --cov-report html:cov_report --cov=. test_notes.py test_crypto.py
 ```
