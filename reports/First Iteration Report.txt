@@ -1,0 +1,15 @@
+GitHub link(can be accessed only by our IA mentor - Fujunku, please email us if anyone else wants access) - https://github.com/s4chin/coms_4156/tree/first-iteration-final (Links to an external site.)Links to an external site.
+
+ 
+
+We run pytest and pylint for testing and static analysis/bug finding respectively in both local pre-commit and TravisCI post-commit. We have discussed with our IA mentor(Fujunku Chen) and concluded that this setup is good enough.
+
+pre-commit file - https://github.com/s4chin/coms_4156/blob/first-iteration-final/pre-commit (Links to an external site.)Links to an external site.
+
+post-commit file(TravisCI) - https://github.com/s4chin/coms_4156/blob/first-iteration-final/.travis.yml (Links to an external site.)Links to an external site.
+
+pylint configuration file - https://github.com/s4chin/coms_4156/blob/first-iteration-final/.pylintrc (Links to an external site.)Links to an external site.
+
+ 
+
+We are using TravisCI and all the reports of the build history are available online here - https://travis-ci.com/s4chin/coms_4156/builds (Links to an external site.)Links to an external site.
