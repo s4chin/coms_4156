@@ -220,7 +220,7 @@ def test_diffcheck_invalid():
 def test_view_entry():
     notes.input = lambda t: 'q'
     crypto = Crypto.Crypto()
-    title = "lost in this world"
+    title = "found in this world"
     content = "Batman is found!!!"
     password = "masterpassword"
     content_1 = crypto.encrypt(content, password)
