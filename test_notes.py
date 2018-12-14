@@ -3,7 +3,8 @@ import os
 import unittest
 import mock
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-from notes import fn, add_entry, delete_entry, edit_entry, upload_drive, download_drive
+from notes import fn, add_entry, delete_entry, edit_entry, upload_drive
+from notes import download_drive, search_entries
 import models as m
 import notes   # pylint: disable=ungrouped-imports
 import crypto as Crypto
@@ -128,6 +129,25 @@ class Testnotes(unittest.TestCase):
         f.close()
         p_1 = download_drive(entry, entry.title, entry.content, password)
         assert not p_1
+
+
+def test_search_entries_valid():
+    tag_list = ['t']
+    title = "avi"
+    content = "How are you doing today?"
+    password = "masterpassword"
+    sync = True
+    m.Note.create(content=content, tags=tag_list, title=title, password=password, sync=sync)
+    mock_input = ['t', 't', 'q']
+    notes.input = lambda t: mock_input.pop(0)
+    val = search_entries()
+    assert val == 1
+
+
+def test_search_entries_quit():
+    notes.input = lambda t: 'q'
+    val = search_entries()
+    assert val == 2
 
 
 def test_menu_loop_q():
