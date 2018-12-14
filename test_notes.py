@@ -3,7 +3,8 @@ import os
 import unittest
 import mock
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
-from notes import * #pylint: disable=wildcard-import
+from notes import fn, add_entry, delete_entry, edit_entry, upload_drive
+from notes import download_drive, search_entries
 import models as m
 import notes   # pylint: disable=ungrouped-imports
 import crypto as Crypto
@@ -43,7 +44,7 @@ def test_delete_entry():
 
 
 def test_edit_entry():
-    crypto = Crypto.Crypto()     #pylint disable=redefined-outer-name
+    crypto = Crypto.Crypto()
     title = "lost in this world"
     content = "Batman is forever lost!!!"
     password = "masterpassword"
