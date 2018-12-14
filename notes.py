@@ -189,12 +189,16 @@ def search_entries():
         query_selector = input("").lower()
         if query_selector == "t":
             view_entries(input("Enter a search Query: "), search_content=False)
+            return_value = 1
             break
         elif query_selector == "q":
+            return_value = 2
             break
         else:
+            return_value = 3
             print("Your input was not recognized, please try again!\n")
             input('')
+    return return_value
 
 
 def menu_loop():
