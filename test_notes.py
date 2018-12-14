@@ -225,10 +225,7 @@ def test_view_entry():
     password = "masterpassword"
     content_1 = crypto.encrypt(content, password)
     password_to_store = crypto.key_to_store(password)
-    # m.Note.create(content=content_1, tags=None, title=title, password=password_to_store, sync=False)
     add_entry(content_1, title, password_to_store)
     entry = m.Note.get(m.Note.title == title)
-    print(entry.content)
-    print(content_1)
     flag = view_entry(entry, password)
     assert flag == False
