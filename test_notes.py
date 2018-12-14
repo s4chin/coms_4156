@@ -131,22 +131,22 @@ class Testnotes(unittest.TestCase):
 
 
 def test_search_entries_valid():
-        tag_list = ['t']
-        title = "avi"
-        content = "How are you doing today?"
-        password = "masterpassword"
-        sync = True
-        m.Note.create(content=content, tags=tag_list, title=title, password=password, sync=sync)
-        mock = ['t', 't', 'q']
-        notes.input = lambda t: mock.pop(0)
-        val = search_entries()
-        assert val == 1
+    tag_list = ['t']
+    title = "avi"
+    content = "How are you doing today?"
+    password = "masterpassword"
+    sync = True
+    m.Note.create(content=content, tags=tag_list, title=title, password=password, sync=sync)
+    mock_input = ['t', 't', 'q']
+    notes.input = lambda t: mock_input.pop(0)
+    val = search_entries()
+    assert val == 1
 
 
 def test_search_entries_quit():
-        notes.input = lambda t: 'q'
-        val = search_entries()
-        assert val == 2
+    notes.input = lambda t: 'q'
+    val = search_entries()
+    assert val == 2
 
 
 def test_menu_loop_q():
