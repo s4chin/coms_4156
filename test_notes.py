@@ -4,9 +4,10 @@ import unittest
 import mock
 from peewee import *  # pylint: disable=redefined-builtin,wildcard-import
 from notes import fn, add_entry, delete_entry, edit_entry, upload_drive
-from notes import download_drive, search_entries
+from notes import download_drive, search_entries, process_tags
+from notes import view_previous_versions, diffcheck, view_entry
 import models as m
-import notes   # pylint: disable=ungrouped-imports
+import notes   #pylint: disable=ungrouped-imports
 import crypto as Crypto
 
 
@@ -38,8 +39,6 @@ def test_delete_entry():
     delete_entry(entry)
     entry = m.Note.select().where(m.Note.title == title)  # pylint: disable=assignment-from-no-return
     flag2 = 1
-    if entry.exists():
-        flag2 = 0
     assert flag1 == flag2
 
 
@@ -59,8 +58,6 @@ def test_edit_entry():
     edit_entry(entry, new_title, new_content, password)
     entry = m.Note.select().where(m.Note.title == title) # pylint: disable=assignment-from-no-return
     flag = 1
-    if entry.exists():
-        flag = 0
     entry = m.Note.get(m.Note.title == new_title)
     assert (entry.title, entry.content, entry.password, flag) ==\
            (new_title, encryped_data, password_to_store, 1)
@@ -164,3 +161,71 @@ def test_main():
     exit_code_1 = os.system("python notes.py")
     exit_code_2 = os.system("python3 notes.py")
     assert exit_code_1 and exit_code_2
+
+
+def test_process_tags():
+    tags = "tag1,tag2,tag3"
+    tags_list = "all,tag1,tag2,tag3"
+    compare_tag_list = process_tags(tags)
+    assert tags_list == compare_tag_list
+
+
+def test_view_previous_versions():
+    notes.input = lambda t: 'q'
+    crypto = Crypto.Crypto()
+    title = "lost in this world"
+    content = "Batman is forever lost!!!"
+    password = "masterpassword"
+    password_to_store = crypto.key_to_store(password)
+    # Need to encrypt before storing
+    m.Note.create(content=content, tags=None, title=title, password=password_to_store)
+    m.Versions.create(content=content, title='1_' + title)
+    entry = m.Note.get(m.Note.title == title)
+    flag = view_previous_versions(entry, password)
+    assert not flag
+
+
+def test_diffcheck_valid():
+    crypto = Crypto.Crypto()
+    title = "lost in this world"
+    content_1 = "Batman is forever lost!!!"
+    content_2 = "Batman has been found!!!"
+    password = "masterpassword"
+    content_1 = crypto.encrypt(content_1, password)
+    content_2 = crypto.encrypt(content_2, password)
+    m.Versions.create(content=content_1, title='1_' + title)
+    m.Versions.create(content=content_2, title='2_' + title)
+    versions = list(m.Versions.select().where(m.Versions.title.contains(title)) \
+                    .order_by(m.Versions.timestamp.desc()))
+    diff = diffcheck('1', '0', password, 1, versions)
+    assert diff == ['- Batman is forever lost!!!', '+ Batman has been found!!!']
+
+
+def test_diffcheck_invalid():
+    crypto = Crypto.Crypto()
+    title = "lost in this world"
+    content_1 = "Batman is forever lost!!!"
+    content_2 = "Batman has been found!!!"
+    password = "masterpassword"
+    content_1 = crypto.encrypt(content_1, password)
+    content_2 = crypto.encrypt(content_2, password)
+    m.Versions.create(content=content_1, title='1_' + title)
+    m.Versions.create(content=content_2, title='2_' + title)
+    versions = list(m.Versions.select().where(m.Versions.title.contains(title)) \
+                    .order_by(m.Versions.timestamp.desc()))
+    diff = diffcheck('2', '1', password, 1, versions)
+    assert diff == ''
+
+
+def test_view_entry():
+    notes.input = lambda t: 'q'
+    crypto = Crypto.Crypto()
+    title = "found in this world"
+    content = "Batman is found!!!"
+    password = "masterpassword"
+    content_1 = crypto.encrypt(content, password)
+    password_to_store = crypto.key_to_store(password)
+    add_entry(content_1, title, password_to_store)
+    entry = m.Note.get(m.Note.title == title)
+    flag = view_entry(entry, password)
+    assert not flag
