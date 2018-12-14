@@ -7,7 +7,7 @@ from notes import fn, add_entry, delete_entry, edit_entry, upload_drive
 from notes import download_drive, search_entries, process_tags
 from notes import view_previous_versions, diffcheck, view_entry
 import models as m
-import notes   #nt: disable=ungrouped-imports
+import notes   #pylint: disable=ungrouped-imports
 import crypto as Crypto
 
 
@@ -182,7 +182,7 @@ def test_view_previous_versions():
     m.Versions.create(content=content, title='1_' + title)
     entry = m.Note.get(m.Note.title == title)
     flag = view_previous_versions(entry, password)
-    assert flag == False
+    assert not flag
 
 
 def test_diffcheck_valid():
@@ -228,4 +228,4 @@ def test_view_entry():
     add_entry(content_1, title, password_to_store)
     entry = m.Note.get(m.Note.title == title)
     flag = view_entry(entry, password)
-    assert flag == False
+    assert not flag
