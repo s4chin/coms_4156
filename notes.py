@@ -293,6 +293,17 @@ def view_previous_versions(entry, password):
             versions = m.Versions.select().where(m.Versions.title.contains(entry.title)) \
                             .order_by(m.Versions.timestamp.desc())
             versions = list(versions)
+            to_remove = []
+            for version in versions:
+                title = version.title.split('_')
+                title.pop(0)
+                title = '_'.join(title)
+                if title != entry.title:
+                    to_remove.append(version)
+            print([version.title for version in versions])
+            print([to_remove_title.title for to_remove_title in to_remove])
+            for remove_item in to_remove:
+                versions.remove(remove_item)
         flag = False
         for i, version_entry in enumerate(versions):
             timestamp = version_entry.timestamp.strftime("%A %B %d, %Y %I:%M%p")
@@ -307,21 +318,13 @@ def view_previous_versions(entry, password):
         elif next_action == 'd':
             first = input('\nInput first Version: ')
             second = input('Input Second Version: ')
-            if first.isdigit() and second.isdigit() \
-                    and 0 <= int(first) <= i and 0 <= int(second) <= i and int(first) != int(second):  # pylint: disable=undefined-loop-variable,line-too-long
-                content_1 = crypto.decrypt(versions[int(first)].content, password)
-                content_2 = crypto.decrypt(versions[int(second)].content, password)
-                content_1_lines = content_1.splitlines()
-                content_2_lines = content_2.splitlines()
-                my_d = difflib.Differ()
-                diff = my_d.compare(content_1_lines, content_2_lines)
+            diff = diffcheck(first, second, password, len(versions) - 1, versions)
+            if diff != '':
                 print('\n'.join(diff))
-                print('\nPress enter to return to view versions')
-                input()
             else:
-                print("Invalid Input. Press Enter to continue.")
-                input()
-        elif next_action.isdigit() and 0 <= int(next_action) <= i:  # pylint: disable=undefined-loop-variable
+                print("Invalid Input. Print enter to return to view entries")
+            input()
+        elif next_action.isdigit() and 0 <= int(next_action) <= len(versions) - 1:  # pylint: disable=undefined-loop-variable
             clear_screen()
             print(versions[int(next_action)].title)
             print("=" * len(versions[int(next_action)].title))
@@ -330,6 +333,20 @@ def view_previous_versions(entry, password):
             input()
         else:
             print("Invalid Input")
+
+
+def diffcheck(first, second, password, i, versions):
+    if first.isdigit() and second.isdigit() \
+            and 0 <= int(first) <= i and 0 <= int(second) <= i and int(first) != int(second):  # pylint: disable=undefined-loop-variable,line-too-long,no-else-return
+        content_1 = crypto.decrypt(versions[int(first)].content, password)
+        content_2 = crypto.decrypt(versions[int(second)].content, password)
+        content_1_lines = content_1.splitlines()
+        content_2_lines = content_2.splitlines()
+        my_d = difflib.Differ()
+        diff = my_d.compare(content_1_lines, content_2_lines)
+        return list(diff)
+    else:
+        return ''
 
 
 def view_entry(entry, password):  # pylint: disable=inconsistent-return-statements
