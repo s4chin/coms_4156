@@ -32,3 +32,7 @@ This is a simple command line note-taking app. After running this app, on, you j
 - Save note with a password
 - Set and reset a password for a session so the app doesn't ask for password repeatedly
 - Sync notes with Google Drive(more setup required*)
+
+[here]: https://console.developers.google.com/flows/enableapi?apiid=drive
+[Python Quickstart guide]: https://developers.google.com/drive/v3/web/quickstart/python
+[Google API Prijects page]: https://console.developers.google.com/iam-admin/projects
