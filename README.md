@@ -35,4 +35,4 @@ This is a simple command line note-taking app. After running this app, on, you j
 
 [here]: https://console.developers.google.com/flows/enableapi?apiid=drive
 [Python Quickstart guide]: https://developers.google.com/drive/v3/web/quickstart/python
-[Google API Prijects page]: https://console.developers.google.com/iam-admin/projects
+[Google API Projects page]: https://console.developers.google.com/iam-admin/projects
